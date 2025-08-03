@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>数あて脳トレゲーム</title>
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f2f2f2;
+      color: #000;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin: 1rem 0;
+      color: #0066cc;
+    }
+
+    .screen {
+      display: none;
+      padding: 1rem;
+    }
+
+    .active {
+      display: block;
+    }
+
+    .btn {
+      font-size: 2rem;
+      padding: 1rem 2rem;
+      margin: 1rem;
+      background-color: #008000;
+      color: white;
+      border: none;
+      border-radius: 10px;
+    }
+
+    .btn:hover {
+      background-color: #005f00;
+    }
+
+    #numberDisplay {
+      font-size: 4rem;
+      margin: 2rem 0;
+      height: 5rem;
+      color: #d90000;
+    }
+
+    #message {
+      font-size: 2.5rem;
+      height: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    #countdown {
+      font-size: 2rem;
+      color: #ff6600;
+      margin-bottom: 1rem;
+    }
+
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 2rem auto;
+      width: 300px;
+    }
+
+    .keypad button {
+      font-size: 2rem;
+      padding: 1.5rem;
+      background-color: #0044cc;
+      color: white;
+      border: none;
+      border-radius: 10px;
+    }
+
+    .keypad button:hover {
+      background-color: #002a80;
+    }
+
+    #resultDisplay {
+      font-size: 2rem;
+      margin-top: 2rem;
+      color: #000;
+    }
+  </style>
+</head>
+<body>
+  <h1>数あて脳トレ</h1>
+
+  <div id="startScreen" class="screen active">
+    <p style="font-size: 1.8rem;">
+      数字を覚えて答えてください。<br />
+      10問連続で出題されます。<br />
+      出題は5秒間表示されます。<br />
+      回答時間は制限なしです。
+    </p>
+    <p style="font-size: 2rem;">桁数を選んでください：</p>
+    <button class="btn" onclick="startGame(3)">3桁</button>
+    <button class="btn" onclick="startGame(4)">4桁</button>
+    <button class="btn" onclick="startGame(5)">5桁</button>
+  </div>
+
+  <div id="gameScreen" class="screen">
+    <div id="remaining" style="font-size: 2rem; margin-bottom: 1rem;"></div>
+    <div id="numberDisplay"></div>
+    <div id="countdown"></div>
+    <div id="message">　</div>
+    <div class="keypad" id="keypad" style="display:none;">
+      <button onclick="pressDigit('1')">1</button>
+      <button onclick="pressDigit('2')">2</button>
+      <button onclick="pressDigit('3')">3</button>
+      <button onclick="pressDigit('4')">4</button>
+      <button onclick="pressDigit('5')">5</button>
+      <button onclick="pressDigit('6')">6</button>
+      <button onclick="pressDigit('7')">7</button>
+      <button onclick="pressDigit('8')">8</button>
+      <button onclick="pressDigit('9')">9</button>
+      <button onclick="clearInput()">クリア</button>
+      <button onclick="pressDigit('0')">0</button>
+      <button onclick="submitAnswer()">決定</button>
+    </div>
+  </div>
+
+  <div id="resultScreen" class="screen">
+    <div id="resultDisplay"></div>
+    <button class="btn" onclick="location.reload()">再挑戦</button>
+  </div>
+
+  <script>
+    let digit = 3;
+    let currentQuestion = 0;
+    let correctCount = 0;
+    let answer = "";
+    let currentNumber = "";
+
+    function startGame(selectedDigit) {
+      digit = selectedDigit;
+      currentQuestion = 0;
+      correctCount = 0;
+      document.getElementById("startScreen").classList.remove("active");
+      document.getElementById("gameScreen").classList.add("active");
+      nextQuestion();
+    }
+
+    function nextQuestion() {
+      currentQuestion++;
+      document.getElementById("remaining").textContent = `あと ${10 - currentQuestion + 1} 問`;
+      answer = "";
+      currentNumber = generateUniqueNumber(digit);
+      document.getElementById("numberDisplay").textContent = currentNumber;
+      document.getElementById("message").textContent = "　";
+      document.getElementById("keypad").style.display = "none";
+
+      let countdown = 5;
+      document.getElementById("countdown").textContent = countdown;
+      let countdownInterval = setInterval(() => {
+        countdown--;
+        document.getElementById("countdown").textContent = countdown;
+        if (countdown <= 0) {
+          clearInterval(countdownInterval);
+          document.getElementById("numberDisplay").textContent = "？？？";
+          document.getElementById("keypad").style.display = "grid";
+          document.getElementById("countdown").textContent = "";
+        }
+      }, 1000);
+    }
+
+    function generateUniqueNumber(length) {
+      let digits = [];
+      while (digits.length < length) {
+        let d = Math.floor(Math.random() * 10);
+        if (!digits.includes(d)) {
+          digits.push(d);
+        }
+      }
+      return digits.join("");
+    }
+
+    function pressDigit(d) {
+      if (answer.length < digit) {
+        answer += d;
+        document.getElementById("numberDisplay").textContent = answer;
+      }
+    }
+
+    function clearInput() {
+      answer = "";
+      document.getElementById("numberDisplay").textContent = "？？？";
+    }
+
+    function submitAnswer() {
+      document.getElementById("keypad").style.display = "none";
+      if (answer === currentNumber) {
+        correctCount++;
+        document.getElementById("message").textContent = "正解！";
+        document.getElementById("message").style.color = "green";
+      } else {
+        document.getElementById("message").textContent = `不正解 (${currentNumber})`;
+        document.getElementById("message").style.color = "red";
+      }
+
+      setTimeout(() => {
+        if (currentQuestion >= 10) {
+          showResult();
+        } else {
+          nextQuestion();
+        }
+      }, 2000);
+    }
+
+    function showResult() {
+      document.getElementById("gameScreen").classList.remove("active");
+      document.getElementById("resultScreen").classList.add("active");
+      document.getElementById("resultDisplay").textContent =
+        `10問中 ${correctCount}問 正解でした！`;
+    }
+  </script>
+</body>
+</html>
